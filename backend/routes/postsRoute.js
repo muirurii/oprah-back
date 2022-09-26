@@ -1,11 +1,14 @@
-const express = require("express");
-const postsRoute = express.Router();
+const route = require("express").Router();
 const postControllers = require("../controllers/postControllers");
+const verifyToken = require("../middleware/verifyToken");
 
+// route.use(verifyToken)
+route.post('/new', verifyToken, postControllers.createPost);
 
-postsRoute.get('/', postControllers.getPosts);
-postsRoute.get('/featured', postControllers.getFeatured);
-postsRoute.get('/:category', postControllers.getCategory);
-postsRoute.get('/post/:id', postControllers.getPost);
+// route.get('/', postControllers.updatePost);
+route.get('/', postControllers.getPosts);
+// route.get('/featured', postControllers.getFeatured);
+// route.get('/:category', postControllers.getCategory);
+// route.get('/post/:id', postControllers.getPost);
 
-module.exports = postsRoute;
+module.exports = route;

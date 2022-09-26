@@ -1,156 +1,86 @@
-const posts = [{
-        id: 1,
-        title: "Post One",
-        body: "Body One Lorem ipsum dolor sit amet consectetur adipisicing elit. Possimus recusandae quas, asperiores quidem atque odit quia blanditiis quis, consectetur suscipit veritatis sed! Dolorum dolore cumque nostrum minus dicta vel voluptatem",
-        author: "admin",
-        date: new Date(),
-        views: 4,
-        comments: [{
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-            {
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-        ],
-        category: ["fashion"],
-    },
-    {
-        id: 2,
-        title: "Post Two",
-        body: "Body Two ipisicing elitorem ipsum dolor sit amet consectetur ad. Possimus recusandae quas, asperiores quidem atque odit quia blanditiis quis, consectetur suscipit veritatis sed! Dolorum dolore cumque nostrum minus dicta vel voluptatem!",
-        author: "admin",
-        date: new Date(),
-        views: 4,
-        comments: [{
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-            {
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-        ],
-        category: ["technology"],
-    },
-    {
-        id: 3,
-        title: "Post Three",
-        body: "Body Three amet conse ipsum dolor sitLoremctetur adipisicing elit. Possimus recusandae quas, asperiores quidem atque odit quia blanditiis quis, consectetur suscipit veritatis sed! Dolorum dolore cumque nostrum minus dicta vel voluptatem!",
-        author: "admin",
-        date: new Date(),
-        views: 4,
-        comments: [{
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-            {
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-        ],
-        category: ["lifestyle"],
-    },
-    {
-        id: 4,
-        title: "Post Four",
-        body: "Body Four amet conse ipsum dolor sitLoremctetur adipisicing elit. Possimus recusandae quas, asperiores quidem atque odit quia blanditiis quis, consectetur suscipit veritatis sed! Dolorum dolore cumque nostrum minus dicta vel voluptatem!",
-        author: "admin",
-        date: new Date(),
-        views: 4,
-        comments: [{
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-            {
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-        ],
-        category: ["fashion"],
-    },
-    {
-        id: 5,
-        title: "Post Five",
-        body: "Body Five amet conse ipsum dolor sitLoremctetur adipisicing elit. Possimus recusandae quas, asperiores quidem atque odit quia blanditiis quis, consectetur suscipit veritatis sed! Dolorum dolore cumque nostrum minus dicta vel voluptatem!",
-        author: "admin",
-        date: new Date(),
-        views: 4,
-        comments: [{
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-            {
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-        ],
-        category: ["politics"],
-    },
-    {
-        id: 8,
-        title: "Post Eight",
-        body: "Body Eight amet conse ipsum dolor sitLoremctetur adipisicing elit. Possimus recusandae quas, asperiores quidem atque odit quia blanditiis quis, consectetur suscipit veritatis sed! Dolorum dolore cumque nostrum minus dicta vel voluptatem!",
-        author: "admin",
-        date: new Date(),
-        views: 4,
-        comments: [{
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-            {
-                id: Math.floor(Math.random() * 344),
-                user: "Alexa",
-                body: "Two ipisicing elitorem",
-            },
-        ],
-        category: ["lifestyle"],
-    },
-];
+const Post = require("../models/Post");
+
+const createPost = async(req, res) => {
+    const { title, body, image, categories } = req.body;
+    const { _id, username, role } = req.auth;
+
+    if (!title || !body || !image || !categories || title.length < 1 || body.length < 1 || image.length < 1 || categories.length < 1) {
+        return res.status(400).json({ message: "Please fill all fields" });
+    }
+
+    const category = categories.split(",")
+
+    console.log(username)
+    try {
+        const post = await Post.create({
+            title,
+            body,
+            creator: "",
+            image,
+            category,
+            _id
+        });
+
+        res.json(post);
+
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+const updatePost = async(req, res) => {
+    // const { title, body, image, categories, } = req.body;
+
+    // if (!title || !body || !image || !categories || title.length < 1 || body.length < 1 || image.length < 1 || categories.length < 1) {
+    //     return res.status(400).json({ message: "Please fill all fields" });
+    // }
+
+    // const category = categories.split(",")
+
+    try {
+        // const post = Post.findByIdAndUpdate()
+
+        // const post = await Post.create({
+        //     title,`
+        //     body,
+        //     image,
+        //     category
+        // });
+
+        // res.json(post);
+
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 const getFeatured = (req, res) => {
-    res.json({
-        latest: posts.slice(0, 3),
-        popular: posts.slice(3, 6),
-    });
+    // res.json({
+    //     latest: posts.slice(0, 3),
+    //     popular: posts.slice(3, 6),
+    // });
 };
 
-const getPosts = (req, res) => {
-    res.json(posts);
-};
+const getPosts = async(req, res) => {
+    try {
+        const posts = await Post.find();
+        res.json(posts)
+    } catch (e) {
 
-const getCategory = (req, res) => {
-    const category = req.params.category;
-
-    const catPosts = posts.filter((post) =>
-        post.category.some((cat) => cat === category)
-    );
-    res.json(catPosts);
+    }
 };
 
 const getPost = (req, res) => {
-    const id = req.params.id;
-    const post = posts.find((post) => post.id === +id);
+    // const id = req.params.id;
+    // const post = posts.find((post) => post.id === +id);
 
-    if (!post) {
-        return res.status(404).json({ message: "Post not found" });
-    }
-    res.json({
-        post,
-        more: posts.slice(0, 3),
-    });
+    // if (!post) {
+    //     return res.status(404).json({ message: "Post not found" });
+    // }
+    // res.json({
+    //     post,
+    //     more: posts.slice(0, 3),
+    // });
 };
 
-module.exports = { getPosts, getPost, getFeatured, getCategory };
+module.exports = { createPost, updatePost, getPosts, getPost, getFeatured };
