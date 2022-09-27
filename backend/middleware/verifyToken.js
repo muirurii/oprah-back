@@ -4,7 +4,7 @@ const verifyToken = (req, res, next) => {
     const authorization = req.headers.authorization;
 
     if (!authorization || !authorization.startsWith('Bearer')) {
-        return res.sendStatus(403);
+        return res.status(401).json({ message: "invalid details" });
     }
 
     const token = authorization.split(' ')[1];
@@ -14,10 +14,9 @@ const verifyToken = (req, res, next) => {
             res.status(401).json({ message: "invalid details" });
         } else {
             const { _id, username, role } = decoded;
-            console.log(decoded)
             req.auth = {
-                _id,
-                username,
+                authId: _id,
+                authName: username,
                 role
             };
             next();
