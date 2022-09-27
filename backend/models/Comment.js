@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const CommentSchema = new mongoose.Schema({
     user: {
-        type: String,
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: "User",
         required: true
     },
     body: {
@@ -12,6 +13,11 @@ const CommentSchema = new mongoose.Schema({
     likes: {
         type: [mongoose.SchemaTypes.ObjectId],
         default: 0,
+    },
+    subComments: {
+        type: [mongoose.SchemaTypes.ObjectId],
+        default: [],
+        ref: "Comment"
     }
 });
 

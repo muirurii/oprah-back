@@ -5,7 +5,7 @@ const slugify = require("slugify");
 
 const validator = (value) => (!value || value.length < 2) ? false : true;
 
-const checkDuplicate = async title => await Post.findOne({
+const checkPost = async title => await Post.findOne({
     slug: slugify(title, { lower: true, strict: true, })
 });
 
@@ -19,7 +19,7 @@ const createPost = async(req, res) => {
     }
 
     try {
-        const duplicate = await checkDuplicate(title);
+        const duplicate = await checkPost(title);
         if (duplicate !== null) {
             return res.status(400).json({ message: "title already exists" });
         }
@@ -43,18 +43,22 @@ const createPost = async(req, res) => {
 
 const getPosts = async(req, res) => {
     try {
-        const posts = await Post.find().populate("creator", "username").sort({ createdAt: -1 });
+        const posts = await Post.find().populate("creator", "username").sort({ createdAt: "descending" })
         res.json(posts)
-    } catch (e) {
-        res.status(500).json({ message: "Internal server error" });
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error", m: err.message });
     }
 };
 
 const updatePost = async(req, res) => {
-    const { newTitle, newBody, newImage, newCategories } = req.body;
+    const { oldTitle, newTitle, newBody, newImage, newCategories } = req.body;
     const postSlug = req.params.slug;
 
     const { authId, authName, role } = req.auth;
+
+    if (role !== "ADMIN") {
+        return res.status(403).json({ message: "Cannot update post" });
+    }
 
     if (!validator(postSlug)) {
         return res.status(400).json({ message: "Please fill all fields" });
@@ -67,7 +71,8 @@ const updatePost = async(req, res) => {
             return res.json({ message: "Post not found" });
         }
 
-        const duplicate = newTitle ? await checkDuplicate(newTitle) : null;
+        const duplicate = newTitle !== oldTitle ? await checkPost(newTitle) : null;
+
         if (duplicate !== null) {
             return res.status(400).json({ message: "title already exists" });
         }
@@ -85,7 +90,7 @@ const updatePost = async(req, res) => {
             post.category = newCategories.split(",")
         }
 
-        const updatedPost = await post.save();
+        const updatedPost = await (await post.save()).populate("creator", "username");
         res.json(updatedPost);
 
     } catch (err) {
@@ -93,20 +98,51 @@ const updatePost = async(req, res) => {
     }
 }
 
-const getFeatured = (req, res) => {};
-
-
-const getPost = (req, res) => {
-    // const id = req.params.id;
-    // const post = posts.find((post) => post.id === +id);
-
-    // if (!post) {
-    //     return res.status(404).json({ message: "Post not found" });
-    // }
-    // res.json({
-    //     post,
-    //     more: posts.slice(0, 3),
-    // });
+const getFeatured = async(req, res) => {
+    try {
+        const featured = await Post.find({ featured: true }).sort({ createdAt: "descending" });
+        res.json(featured);
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
 };
 
-module.exports = { createPost, updatePost, getPosts, getPost, getFeatured };
+
+const getPost = async(req, res) => {
+    const { slug } = req.params;
+
+    try {
+        const post = await Post.findOne({ slug });
+        if (post === null) {
+            return res.json({ message: "Post not found" });
+        }
+        const populated = await post.populate("creator", "username")
+        res.json(populated);
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+const deletePost = async(req, res) => {
+    const { slug } = req.params;
+    const { role } = req.auth;
+
+    if (role !== "ADMIN") {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    try {
+        const post = await Post.findOneAndDelete({ slug });
+        if (post === null) {
+            return res.status(400).json({ message: "Post not found" });
+        }
+        res.json({
+            message: `Post ${post.slug} deleted`
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+
+}
+
+
+module.exports = { createPost, updatePost, getPosts, getPost, getFeatured, deletePost };
