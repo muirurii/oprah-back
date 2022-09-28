@@ -9,7 +9,7 @@ route.get('/featured', postControllers.getFeatured);
 route.get('/:slug', postControllers.getPost);
 
 /* Protected routes */
-route.use(verifyToken)
+route.use(verifyToken);
 
 route.post('/new', postControllers.createPost);
 route.put('/:slug', postControllers.updatePost);
