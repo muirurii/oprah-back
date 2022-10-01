@@ -6,6 +6,7 @@ const verifyToken = require("../middleware/verifyToken");
 
 route.get('/', postControllers.getPosts);
 route.get('/featured', postControllers.getFeatured);
+route.get('/category/:category', postControllers.getCategory);
 route.get('/:slug', postControllers.getPost);
 
 /* Protected routes */

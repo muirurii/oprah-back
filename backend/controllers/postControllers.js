@@ -111,7 +111,13 @@ const getFeatured = async(req, res) => {
             .populate("creator", "username")
             .populate("comments")
             .sort({ createdAt: "descending" });
-        res.json(featured);
+        const latest = await Post.find()
+            .populate("creator", "username")
+            .populate("comments")
+            .sort({ createdAt: "descending" })
+            .limit(3);
+
+        res.json({ featured, latest });
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
     }
@@ -123,16 +129,39 @@ const getPost = async(req, res) => {
     try {
         const post = await Post.findOne({ slug });
         if (post === null) {
-            return res.json({ message: "Post not found" });
+            return res.status(404).json({ message: "Post not found" });
         }
         const populated = await (
             await post.populate("creator", "username")
         ).populate("comments");
-        res.json(populated);
+
+        const others = await Post.find()
+            .limit(5)
+            .populate("creator", "username")
+            .populate("comments");
+
+        res.json({
+            post: populated,
+            recommended: others
+        });
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
     }
 };
+
+const getCategory = async(req, res) => {
+    const { category } = req.params;
+
+    try {
+        const posts = await Post.find({ category });
+        if (posts.length < 1) {
+            return res.status(404).json({ message: "No category found" })
+        }
+        res.json(posts);
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 const deletePost = async(req, res) => {
     const { slug } = req.params;
@@ -160,5 +189,6 @@ module.exports = {
     getPosts,
     getPost,
     getFeatured,
+    getCategory,
     deletePost,
 };

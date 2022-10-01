@@ -34,7 +34,7 @@ const reactToPost = async(req, res) => {
 
         return res.json(post);
     } catch (err) {
-        res.status(500).json({ message: "Internal server error", m: err.message });
+        res.status(500).json({ message: "Internal server error" });
     }
 };
 
@@ -131,12 +131,32 @@ const reactToComment = async(req, res) => {
 
         return res.json(comment);
     } catch (err) {
-        res.status(500).json({ message: "Internal server error", m: err.message });
+        res.status(500).json({ message: "Internal server error" });
     }
 };
 
+const addView = async(req, res) => {
+    const { slug } = req.params;
+    if (!slug) {
+        return res.sendStatus(204);
+    }
+    try {
+        const post = await Post.find({ slug });
+        if (!post) {
+            return res.sendStatus(204);
+        }
+
+        const updated = await Post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
+        res.json({ views: updated.views });
+
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 module.exports = {
     reactToPost,
+    addView,
     bookMarkPost,
     addComment,
     reactToComment,

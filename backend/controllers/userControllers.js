@@ -25,16 +25,19 @@ const filterUserDetails = (user) => {
 //
 
 const registerUser = async(req, res) => {
-    const { username, password } = req.body;
+    const { username, password, repeatPassword } = req.body;
 
-    if (!validator(username) || !validator(password)) {
+    if (!validator(username) || !validator(password) || !validator(repeatPassword)) {
         return res.status(400).json({ message: "Please fill all details" });
+    }
+    if (password !== repeatPassword) {
+        return res.status(400).json({ message: "Passwords do not match" });
     }
 
     try {
         const duplicate = await checkUser(username);
         if (duplicate !== null) {
-            return res.json({ message: "username unavailable" });
+            return res.status(409).json({ message: "username is already taken" });
         }
         const encryptedPassword = await bcrypt.hash(password, 6);
         const user = await User.create({ username, password: encryptedPassword });
@@ -58,12 +61,12 @@ const logIn = async(req, res) => {
         const user = await checkUser(username);
 
         if (user === null) {
-            return res.status(409).json({ message: "Invalid details" });
+            return res.status(401).json({ message: "Wrong credentials" });
         }
 
         const passCheck = await bcrypt.compare(password, user.password);
         if (!passCheck) {
-            return res.status(409).json({ message: "Wrong credentials" });
+            return res.status(401).json({ message: "Wrong credentials" });
         }
 
         const details = filterUserDetails(user);
