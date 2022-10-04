@@ -101,7 +101,7 @@ const updatePost = async(req, res) => {
         ).populate("creator", "username");
         res.json(updatedPost);
     } catch (err) {
-        res.status(500).json({ message: "Internal server error", m: err.message });
+        res.status(500).json({ message: "Internal server error" });
     }
 };
 

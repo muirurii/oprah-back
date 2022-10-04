@@ -19,10 +19,12 @@ const UserSchema = new mongoose.Schema({
     },
     bookmarks: {
         type: [mongoose.SchemaTypes.ObjectId],
+        ref: "Post",
         default: []
     },
     likes: {
         type: [mongoose.SchemaTypes.ObjectId],
+        ref: "Post",
         default: [],
     }
 }, {

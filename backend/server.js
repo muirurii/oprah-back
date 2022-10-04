@@ -6,6 +6,8 @@ require("dotenv").config({
     path: path.join(__dirname, "..", ".env")
 });
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
+app.use(cookieParser())
 
 const allowedOrigins = ["https://google.com", "http://localhost:3000", "http://127.0.0.2:5500"];
 
@@ -27,6 +29,11 @@ app.use(cors(corsOptions))
 // app.use(cors({
 //     origin:
 // }))
+
+// app.use((req, res, next) => {
+//     console.log(req.cookies)
+//     next()
+// })
 
 const connection = require("./config/db");
 connection();

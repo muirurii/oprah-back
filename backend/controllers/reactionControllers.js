@@ -62,7 +62,7 @@ const bookMarkPost = async(req, res) => {
 
         await user.save();
 
-        return res.json(post);
+        return res.json({ id: post._id });
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
     }
@@ -141,14 +141,13 @@ const addView = async(req, res) => {
         return res.sendStatus(204);
     }
     try {
-        const post = await Post.find({ slug });
+        const post = await Post.findOne({ slug });
         if (!post) {
             return res.sendStatus(204);
         }
-
-        const updated = await Post.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
-        res.json({ views: updated.views });
-
+        post.views = post.views + 1;
+        await post.save();
+        res.json({ views: post.views });
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
     }
