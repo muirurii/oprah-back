@@ -17,7 +17,6 @@ const corsOptions = {
 
             callback(null, true)
         } else {
-            console.log(origin, "hh")
             callback(new Error("Not allowed by cors"))
         }
     },
@@ -30,10 +29,11 @@ app.use(cors(corsOptions))
 //     origin:
 // }))
 
-// app.use((req, res, next) => {
-//     console.log(req.cookies)
-//     next()
-// })
+app.use((req, res, next) => {
+    // res.header("Access-Controll-Allow-Credentials", true);
+    // console.log(req.cookies)
+    next()
+})
 
 const connection = require("./config/db");
 connection();

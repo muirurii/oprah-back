@@ -112,7 +112,8 @@ const logIn = async(req, res) => {
         }
 
         const details = filterUserDetails(user);
-        res.cookie("blo", details.token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "None" });
+        // res.cookie("blo", details.token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "None", path: "/" });
+        res.cookie("cook", 'cook')
         res.json(details);
 
     } catch (err) {

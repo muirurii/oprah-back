@@ -107,10 +107,12 @@ const updatePost = async(req, res) => {
 
 const getFeatured = async(req, res) => {
     try {
-        const featured = await Post.find({ featured: true })
+        const featured = await Post.where("views")
+            .gt(5)
             .populate("creator", "username")
             .populate("comments")
-            .sort({ createdAt: "descending" });
+            .sort({ views: "descending" })
+            .limit(3);
         const latest = await Post.find()
             .populate("creator", "username")
             .populate("comments")
@@ -119,6 +121,7 @@ const getFeatured = async(req, res) => {
 
         res.json({ featured, latest });
     } catch (err) {
+        console.log(err.message);
         res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -142,7 +145,7 @@ const getPost = async(req, res) => {
 
         res.json({
             post: populated,
-            recommended: others
+            recommended: others,
         });
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
@@ -155,13 +158,13 @@ const getCategory = async(req, res) => {
     try {
         const posts = await Post.find({ category });
         if (posts.length < 1) {
-            return res.status(404).json({ message: "No category found" })
+            return res.status(404).json({ message: "No category found" });
         }
         res.json(posts);
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 
 const deletePost = async(req, res) => {
     const { slug } = req.params;
