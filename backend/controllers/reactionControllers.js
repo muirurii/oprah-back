@@ -68,39 +68,6 @@ const bookMarkPost = async(req, res) => {
     }
 };
 
-const addComment = async(req, res) => {
-    const { authId, authName } = req.auth;
-    const { body } = req.body;
-    const { slug } = req.params;
-
-    if (!body || body.length < 1) {
-        return res.sendStatus(204);
-    }
-
-    try {
-        const post = await Post.findOne({ slug });
-        if (post === null) {
-            return res.sendStatus(204);
-        }
-
-        const user = await User.findById(authId);
-        if (user === null) {
-            return res.sendStatus(204);
-        }
-
-        const comment = await Comment.create({
-            user: user.username,
-            body,
-        });
-
-        post.comments.push(comment._id);
-        await post.save();
-
-        res.json(comment);
-    } catch (err) {
-        res.status(500).json({ message: "Internal server error" });
-    }
-};
 
 const reactToComment = async(req, res) => {
     const { id } = req.params;
@@ -157,6 +124,5 @@ module.exports = {
     reactToPost,
     addView,
     bookMarkPost,
-    addComment,
     reactToComment,
 };

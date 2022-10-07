@@ -6,12 +6,24 @@ const User = require("../models/User");
 
 const checkUser = async(username) => await User.findOne({ username });
 
-const validator = (value) => (!value || value.length < 2) ? false : true;
+const validator = (value) => (!value || value.length < 2 ? false : true);
 
-const filterUserDetails = (user) => {
+const filterUserDetails = (res, user) => {
     const { _id, username, role, profilePic, bookmarks, likes } = user;
-    const token = jwt.sign({ _id, username, role, }, process.env.ACCESS_SECRET, { expiresIn: '1d' });
-
+    const token = jwt.sign({ _id, username, role }, process.env.ACCESS_SECRET, {
+        expiresIn: "1d",
+    });
+    const refresh = jwt.sign({ _id, username, role },
+        process.env.REFRESH_SECRET, { expiresIn: "10d" }
+    );
+    if (res)
+        res.cookie("refresh_", refresh, {
+            maxAge: 24 * 60 * 60 * 1000,
+            httpOnly: true,
+            sameSite: "None",
+            path: "/",
+            secure: true,
+        });
     return {
         _id,
         username,
@@ -19,9 +31,9 @@ const filterUserDetails = (user) => {
         profilePic,
         bookmarks,
         likes,
-        token
-    }
-}
+        token,
+    };
+};
 
 //
 
@@ -31,6 +43,7 @@ const getUser = async(req, res) => {
 
     try {
         const user = await User.findById(id);
+
         if (user === null) {
             return res.sendStatus(401);
         }
@@ -39,12 +52,13 @@ const getUser = async(req, res) => {
             return res.sendStatus(401);
         }
 
-        const details = filterUserDetails(user);
+        const details = filterUserDetails(false, user);
         res.json(details);
     } catch (err) {
+        console.log(err.message);
         res.status(500).json({ message: "server error" });
     }
-}
+};
 
 const getLiked = async(req, res) => {
     const { authId, authName, role } = req.auth;
@@ -54,22 +68,26 @@ const getLiked = async(req, res) => {
         if (user === null) {
             return res.sendStatus(401);
         }
-        const populated = await User.findById(authId).populate("likes", "").populate("bookmarks");
+        const populated = await User.findById(authId)
+            .populate("likes", "")
+            .populate("bookmarks");
 
         res.json({
             likes: populated.likes,
-            bookmarks: populated.bookmarks
-        })
-
+            bookmarks: populated.bookmarks,
+        });
     } catch (err) {
         res.status(500).json({ message: "server error" });
     }
-}
+};
 
 const registerUser = async(req, res) => {
     const { username, password, repeatPassword } = req.body;
 
-    if (!validator(username) || !validator(password) || !validator(repeatPassword)) {
+    if (!validator(username) ||
+        !validator(password) ||
+        !validator(repeatPassword)
+    ) {
         return res.status(400).json({ message: "Please fill all details" });
     }
     if (password !== repeatPassword) {
@@ -84,13 +102,12 @@ const registerUser = async(req, res) => {
         const encryptedPassword = await bcrypt.hash(password, 6);
         const user = await User.create({ username, password: encryptedPassword });
 
-        const details = filterUserDetails(user);
-        res.json(details)
+        const details = filterUserDetails(res, user);
+        res.json(details);
     } catch (err) {
         res.status(500).json({ message: "server error" });
     }
-
-}
+};
 
 const logIn = async(req, res) => {
     const { username, password } = req.body;
@@ -111,16 +128,13 @@ const logIn = async(req, res) => {
             return res.status(401).json({ message: "Wrong credentials" });
         }
 
-        const details = filterUserDetails(user);
-        // res.cookie("blo", details.token, { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, sameSite: "None", path: "/" });
-        res.cookie("cook", 'cook')
+        const details = filterUserDetails(res, user);
         res.json(details);
-
     } catch (err) {
-        console.log(err.message)
+        console.log(err.message);
         res.status(500).json({ message: "server error" });
     }
-}
+};
 
 const updateUser = async(req, res) => {
     const { username, newUsername, newPass, picUrl } = req.body;
@@ -153,18 +167,18 @@ const updateUser = async(req, res) => {
         }
 
         await user.save();
-        const details = filterUserDetails(user);
+        const details = filterUserDetails(res, user);
 
         res.json(details);
     } catch (err) {
         res.status(500).json({ message: "server error" });
     }
-}
+};
 
 module.exports = {
     getUser,
     registerUser,
     logIn,
     updateUser,
-    getLiked
-}
+    getLiked,
+};

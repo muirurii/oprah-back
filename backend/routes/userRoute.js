@@ -7,7 +7,7 @@ route.post("/login", userControllers.logIn);
 
 route.use(verifyToken);
 
-route.post("/user/:id", userControllers.getUser);
+route.get("/user/u/:id", userControllers.getUser);
 route.put("/update", userControllers.updateUser);
 route.get("/user/liked", userControllers.getLiked);
 
