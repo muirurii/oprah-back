@@ -142,7 +142,7 @@ const updateUser = async(req, res) => {
     const { authId, authName, role } = req.auth;
 
     try {
-        const user = await checkUser(username);
+        const user = await User.findById(authId);
         if (user === null) {
             return res.json({ message: `User ${username} does not exist` });
         }
@@ -175,10 +175,23 @@ const updateUser = async(req, res) => {
     }
 };
 
+const uploadImage = async(req, res) => {
+    const { data } = req.body;
+    const { authId } = req.auth;
+
+    if (!data) res.sendStatus(401);
+    try {
+        res.json(data)
+    } catch (error) {
+        res.status(500).json({ message: "server error" });
+    }
+}
+
 module.exports = {
     getUser,
     registerUser,
     logIn,
     updateUser,
     getLiked,
+    uploadImage
 };

@@ -56,12 +56,62 @@ const getComments = async(req, res) => {
 
         res.json(post.comments);
     } catch (err) {
-        console.log(err.message);
         res.status(500).json({ message: "Internal server error" });
     }
 };
 
+const addSubComment = async(req, res) => {
+    const { authId, authName } = req.auth;
+    const { body } = req.body;
+    const { commId } = req.params;
+
+    if (!body || body.length < 1) {
+        return res.sendStatus(204);
+    }
+
+    try {
+        const comment = await Comment.findById(commId);
+        if (comment === null) {
+            return res.sendStatus(204);
+        }
+
+        const subComment = await Comment.create({
+            user: authId,
+            body,
+        });
+
+        comment.subComments.push(subComment._id);
+        await comment.save();
+
+        res.json(subComment);
+
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+        console.log(err.message);
+    }
+}
+
+const getSubComments = async(req, res) => {
+    const { commId } = req.params;
+
+    try {
+        const comment = await Comment.findById(commId).populate({
+            path: "subComments",
+            populate: {
+                path: "user",
+                select: "username",
+                model: "User"
+            }
+        })
+        res.json(comment)
+    } catch (err) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
 module.exports = {
     addComment,
     getComments,
+    addSubComment,
+    getSubComments
 };
