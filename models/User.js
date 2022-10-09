@@ -17,6 +17,10 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
+    cloudinaryId: {
+        type: String,
+        default: ""
+    },
     bookmarks: {
         type: [mongoose.SchemaTypes.ObjectId],
         ref: "Post",

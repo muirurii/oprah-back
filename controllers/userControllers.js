@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const cloudinary = require("../config/cloudinary");
 
 //Utility fns
 
@@ -163,7 +164,14 @@ const updateUser = async(req, res) => {
         }
 
         if (validator(picUrl)) {
-            user.profilePic = picUrl;
+            const uploadedImage = await cloudinary.uploader.upload(
+                picUrl, {
+                    upload_preset: "oprah",
+                    folder: "profiles"
+                }
+            );
+            user.profilePic = uploadedImage.secure_url;
+            user.cloudinaryId = uploadedImage.public_id;
         }
 
         await user.save();
@@ -171,6 +179,7 @@ const updateUser = async(req, res) => {
 
         res.json(details);
     } catch (err) {
+        console.log(err.message)
         res.status(500).json({ message: "server error" });
     }
 };
