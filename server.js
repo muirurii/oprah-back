@@ -10,7 +10,7 @@ const cookieParser = require("cookie-parser");
 app.use(cookieParser());
 
 const allowedOrigins = [
-    "https://google.com",
+    "https://oprahblog.vercel.app",
     "http://localhost:3000",
     "http://127.0.0.2:5500",
 ];
