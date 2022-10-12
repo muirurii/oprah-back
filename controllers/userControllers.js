@@ -69,8 +69,8 @@ const getLiked = async(req, res) => {
         if (user === null) {
             return res.sendStatus(401);
         }
-        const populated = await User.findById(authId)
-            .populate("likes", "")
+        const populated = await user
+            .populate("likes")
             .populate("bookmarks");
 
         res.json({
@@ -132,7 +132,6 @@ const logIn = async(req, res) => {
         const details = filterUserDetails(res, user);
         res.json(details);
     } catch (err) {
-        console.log(err.message);
         res.status(500).json({ message: "server error" });
     }
 };
@@ -184,23 +183,10 @@ const updateUser = async(req, res) => {
     }
 };
 
-const uploadImage = async(req, res) => {
-    const { data } = req.body;
-    const { authId } = req.auth;
-
-    if (!data) res.sendStatus(401);
-    try {
-        res.json(data)
-    } catch (error) {
-        res.status(500).json({ message: "server error" });
-    }
-}
-
 module.exports = {
     getUser,
     registerUser,
     logIn,
     updateUser,
-    getLiked,
-    uploadImage
+    getLiked
 };

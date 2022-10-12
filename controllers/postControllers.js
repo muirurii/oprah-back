@@ -3,7 +3,7 @@ const slugify = require("slugify");
 
 //utility fns
 
-const validator = (value) => (!value || value.length < 2 ? false : true);
+const validator = (value) => Boolean(value) && value.length >= 2;
 
 const checkPost = async(title) =>
     await Post.findOne({

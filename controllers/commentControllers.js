@@ -29,7 +29,7 @@ const addComment = async(req, res) => {
 
         post.comments.push(comment._id);
         await post.save();
-        const populated = await comment.populate("user", "username _id");
+        const populated = await comment.populate("user");
 
         res.json({
             comment: populated,
@@ -52,7 +52,6 @@ const getComments = async(req, res) => {
                     model: "User",
                 },
             })
-            .select("username");
 
         res.json(post.comments);
     } catch (err) {
@@ -81,9 +80,10 @@ const addSubComment = async(req, res) => {
         });
 
         comment.subComments.push(subComment._id);
+        const populated = await subComment.populate("user", "username _id");
         await comment.save();
 
-        res.json(subComment);
+        res.json(populated);
 
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });

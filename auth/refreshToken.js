@@ -10,7 +10,7 @@ const refreshToken = async(req, res) => {
             res.status(401).json({ message: "invalid details" });
         } else {
             const { _id, username, role } = decoded;
-            const token = jwt.sign({ _id, username, role, }, process.env.ACCESS_SECRET, { expiresIn: '1d' });
+            const token = jwt.sign({ _id, username, role, }, process.env.ACCESS_SECRET, { expiresIn: '5d' });
 
             res.json({
                 _id,
