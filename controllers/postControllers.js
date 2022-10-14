@@ -45,11 +45,14 @@ const createPost = async(req, res) => {
 };
 
 const getPosts = async(req, res) => {
+    const { filterProp, filterValue } = req.query;
+
     try {
         const posts = await Post.find()
             .populate("creator", "username")
-            .populate("comments")
-            .sort({ createdAt: "descending" });
+            .sort({
+                [filterProp]: filterValue
+            });
         res.json(posts);
     } catch (err) {
         res.status(500).json({ message: "Internal server error", m: err.message });
@@ -138,7 +141,7 @@ const getPost = async(req, res) => {
             await post.populate("creator", "username")
         ).populate("comments");
 
-        const others = await Post.find()
+        const others = await Post.find({ _id: { $ne: post._id } })
             .limit(5)
             .populate("creator", "username")
             .populate("comments");
