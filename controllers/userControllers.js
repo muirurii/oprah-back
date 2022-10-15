@@ -162,7 +162,7 @@ const updateUser = async(req, res) => {
             user.username = newUsername;
         }
 
-        if (validator(picUrl)) {
+        if (validator(picUrl) && !picUrl.startsWith("https://")) {
             const uploadedImage = await cloudinary.uploader.upload(
                 picUrl, {
                     upload_preset: "oprah",

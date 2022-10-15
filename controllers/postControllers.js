@@ -1,5 +1,7 @@
 const Post = require("../models/Post");
 const slugify = require("slugify");
+const cloudinary = require("../config/cloudinary");
+const { update } = require("../models/Post");
 
 //utility fns
 
@@ -30,13 +32,22 @@ const createPost = async(req, res) => {
 
         const category = categories.split(",");
 
+        const uploadedImage = await cloudinary.uploader.upload(
+            image, {
+                upload_preset: "blog",
+                folder: "pictures"
+            }
+        );
+
         const post = await Post.create({
             title,
             body,
             creator: authId,
-            image,
+            image: uploadedImage.secure_url,
+            cloudinaryId: uploadedImage.public_id,
             category,
         });
+
         const populated = await post.populate("creator", "username");
         res.json(populated);
     } catch (err) {
@@ -76,10 +87,6 @@ const updatePost = async(req, res) => {
         return res.status(403).json({ message: "Cannot update post" });
     }
 
-    if (!validator(postSlug)) {
-        return res.status(400).json({ message: "Please fill all fields" });
-    }
-
     try {
         const post = await Post.findOne({ slug: postSlug });
 
@@ -99,8 +106,16 @@ const updatePost = async(req, res) => {
         if (validator(newBody)) {
             post.body = newBody;
         }
-        if (validator(newImage)) {
-            post.image = newImage;
+        if (!newImage.startsWith("https://")) {
+            const uploadedImage = await cloudinary.uploader.upload(
+                newImage, {
+                    upload_preset: "blog",
+                    folder: "pictures"
+                }
+            );
+
+            post.image = uploadedImage.secure_url;
+            post.cloudinaryId = uploadedImage.public_id;
         }
         if (validator(newCategories)) {
             post.category = newCategories.split(",");
@@ -109,6 +124,7 @@ const updatePost = async(req, res) => {
         const updatedPost = await (
             await post.save()
         ).populate("creator", "username");
+
         res.json(updatedPost);
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
