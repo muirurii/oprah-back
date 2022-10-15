@@ -45,15 +45,22 @@ const createPost = async(req, res) => {
 };
 
 const getPosts = async(req, res) => {
-    const { filterProp, filterValue } = req.query;
+    const { sortProp, sortValue } = req.query;
+    const search = req.query.search || "";
 
     try {
-        const posts = await Post.find()
+        const posts = await Post.find({
+                $or: [{ "body": { "$regex": search, "$options": "i" } },
+                    { "title": { "$regex": search, "$options": "i" } }
+                ]
+            })
             .populate("creator", "username")
             .sort({
-                [filterProp]: filterValue
+                [sortProp]: sortValue
             });
-        res.json(posts);
+
+        const totalPosts = Post.length;
+        res.json({ posts, totalPosts });
     } catch (err) {
         res.status(500).json({ message: "Internal server error", m: err.message });
     }
