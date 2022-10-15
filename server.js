@@ -11,6 +11,7 @@ app.use(cookieParser());
 
 const allowedOrigins = [
     "https://oprahblog.vercel.app",
+    "https://orpahsblog.onrender.com",
     "http://localhost:3000",
     "http://127.0.0.2:5500",
 ];
