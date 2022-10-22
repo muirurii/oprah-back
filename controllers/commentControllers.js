@@ -29,11 +29,10 @@ const addComment = async(req, res) => {
 
         post.comments.push(comment._id);
         await post.save();
-        const populated = await comment.populate("user");
+        const populated = await comment.populate("user", "username profilePic");
 
         res.json({
             comment: populated,
-            post,
         });
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
@@ -48,7 +47,7 @@ const getComments = async(req, res) => {
                 path: "comments",
                 populate: {
                     path: "user",
-                    select: "username",
+                    select: "username profilePic",
                     model: "User",
                 },
             })
@@ -80,7 +79,7 @@ const addSubComment = async(req, res) => {
         });
 
         comment.subComments.push(subComment._id);
-        const populated = await subComment.populate("user", "username _id");
+        const populated = await subComment.populate("user", "username profilePic");
         await comment.save();
 
         res.json(populated);
@@ -99,7 +98,7 @@ const getSubComments = async(req, res) => {
             path: "subComments",
             populate: {
                 path: "user",
-                select: "username",
+                select: "username profilePic",
                 model: "User"
             }
         })

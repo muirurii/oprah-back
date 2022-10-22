@@ -15,11 +15,11 @@ const filterUserDetails = (res, user) => {
         expiresIn: "1d",
     });
     const refresh = jwt.sign({ _id, username, role },
-        process.env.REFRESH_SECRET, { expiresIn: "10d" }
+        process.env.REFRESH_SECRET, { expiresIn: "10 days" }
     );
     if (res)
         res.cookie("refresh_", refresh, {
-            maxAge: 24 * 60 * 60 * 1000,
+            maxAge: 24 * 60 * 60 * 1000 * 10,
             httpOnly: true,
             sameSite: "None",
             path: "/",

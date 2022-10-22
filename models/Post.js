@@ -21,7 +21,13 @@ const PostSchema = new mongoose.Schema({
     },
     cloudinaryId: {
         type: String,
-        required: true,
+        default: ""
+    },
+    excerpt: {
+        type: String,
+        default: `Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+        Quidem in magnam iure odio libero consectetur quam. Temporibus libero, dolorum dignissimos quaerat a quia autem sed corrupti amet eaque quae laudantium quasi porro corporis placeat odit repellat ducimus sit. Labore excepturi libero recusandae nihil aliquam dolores obcaecati, natus ratione esse in tempora, nam voluptatem nobis alias, veritatis porro praesentium ipsum vitae modi repellat corporis. Hic soluta eligendi ut quibusdam, omnis repellat fugiat alias impedit sint minus at quos quo laborum nemo a, excepturi tenetur mollitia magni? Voluptates ratione non tenetur accusamus assumenda,
+         laborum magni soluta similique iure illum corrupti earum obcaecati!`
     },
     body: {
         type: String,

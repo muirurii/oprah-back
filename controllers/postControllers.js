@@ -13,13 +13,14 @@ const checkPost = async(title) =>
     });
 
 const createPost = async(req, res) => {
-    const { title, body, image, categories } = req.body;
+    const { title, body, excerpt, image, categories } = req.body;
     const { authId, authName, role } = req.auth;
 
     if (!validator(title) ||
         !validator(body) ||
         !validator(image) ||
-        !validator(categories)
+        !validator(categories) ||
+        !validator(excerpt)
     ) {
         return res.status(400).json({ message: "Please fill all fields" });
     }
@@ -32,23 +33,22 @@ const createPost = async(req, res) => {
 
         const category = categories.split(",");
 
-        const uploadedImage = await cloudinary.uploader.upload(
-            image, {
-                upload_preset: "blog",
-                folder: "pictures"
-            }
-        );
+        const uploadedImage = await cloudinary.uploader.upload(image, {
+            upload_preset: "blog",
+            folder: "pictures",
+        });
 
         const post = await Post.create({
             title,
             body,
+            excerpt,
             creator: authId,
             image: uploadedImage.secure_url,
             cloudinaryId: uploadedImage.public_id,
             category,
         });
 
-        const populated = await post.populate("creator", "username");
+        const populated = await post.populate("creator", "username profilePic");
         res.json(populated);
     } catch (err) {
         res.status(500).json({ message: "Internal server error" });
@@ -61,13 +61,15 @@ const getPosts = async(req, res) => {
 
     try {
         const posts = await Post.find({
-                $or: [{ "body": { "$regex": search, "$options": "i" } },
-                    { "title": { "$regex": search, "$options": "i" } }
-                ]
+                $or: [
+                    { body: { $regex: search, $options: "i" } },
+                    { title: { $regex: search, $options: "i" } },
+                    { excerpt: { $regex: search, $options: "i" } },
+                ],
             })
-            .populate("creator", "username")
+            .populate("creator", "username profilePic")
             .sort({
-                [sortProp]: sortValue
+                [sortProp]: sortValue,
             });
 
         const totalPosts = Post.length;
@@ -78,7 +80,8 @@ const getPosts = async(req, res) => {
 };
 
 const updatePost = async(req, res) => {
-    const { oldTitle, newTitle, newBody, newImage, newCategories } = req.body;
+    const { oldTitle, newTitle, newBody, newImage, newCategories, newExcerpt } =
+    req.body;
     const postSlug = req.params.slug;
 
     const { authId, authName, role } = req.auth;
@@ -100,30 +103,24 @@ const updatePost = async(req, res) => {
             return res.status(400).json({ message: "title already exists" });
         }
 
-        if (validator(newTitle)) {
-            post.title = newTitle;
-        }
-        if (validator(newBody)) {
-            post.body = newBody;
-        }
-        if (!newImage.startsWith("https://")) {
-            const uploadedImage = await cloudinary.uploader.upload(
-                newImage, {
-                    upload_preset: "blog",
-                    folder: "pictures"
-                }
-            );
+        validator(newTitle) && (post.title = newTitle);
+        validator(newBody) && (post.body = newBody);
+        validator(newExcerpt) && (post.excerpt = newExcerpt);
+        validator(newCategories) && (post.category = newCategories.split(","));
+
+        if (newImage.startsWith("https://") || newImage.startsWith("/pic")) {} else {
+            const uploadedImage = await cloudinary.uploader.upload(newImage, {
+                upload_preset: "blog",
+                folder: "pictures",
+            });
 
             post.image = uploadedImage.secure_url;
             post.cloudinaryId = uploadedImage.public_id;
         }
-        if (validator(newCategories)) {
-            post.category = newCategories.split(",");
-        }
 
         const updatedPost = await (
             await post.save()
-        ).populate("creator", "username");
+        ).populate("creator", "username profilePic");
 
         res.json(updatedPost);
     } catch (err) {
@@ -135,12 +132,12 @@ const getFeatured = async(req, res) => {
     try {
         const featured = await Post.where("views")
             .gt(5)
-            .populate("creator", "username")
+            .populate("creator", "username profilePic")
             .populate("comments")
             .sort({ views: "descending" })
             .limit(3);
         const latest = await Post.find()
-            .populate("creator", "username")
+            .populate("creator", "username profilePic")
             .populate("comments")
             .sort({ createdAt: "descending" })
             .limit(3);
@@ -161,12 +158,12 @@ const getPost = async(req, res) => {
             return res.status(404).json({ message: "Post not found" });
         }
         const populated = await (
-            await post.populate("creator", "username")
+            await post.populate("creator", "username profilePic")
         ).populate("comments");
 
         const others = await Post.find({ _id: { $ne: post._id } })
             .limit(5)
-            .populate("creator", "username")
+            .populate("creator", "username profilePic")
             .populate("comments");
 
         res.json({
@@ -182,7 +179,10 @@ const getCategory = async(req, res) => {
     const { category } = req.params;
 
     try {
-        const posts = await Post.find({ category });
+        const posts = await Post.find({ category })
+            .populate("creator", "username profilePic")
+            .populate("comments");
+
         if (posts.length < 1) {
             return res.status(404).json({ message: "No category found" });
         }
